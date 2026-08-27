@@ -12,11 +12,9 @@ let aiScore = 0;
 const isFormPage = !!document.getElementById('step-email');
 
 // ==========================================
-// AUTH FORM FLOW (form.html)
+// FORM PAGE LOGIC (form.html)
 // ==========================================
 if (isFormPage) {
-  const landingView = document.getElementById('landing-view');
-  const loginView = document.getElementById('login-view');
   const stepEmail = document.getElementById('step-email');
   const stepPassword = document.getElementById('step-password');
   const stepLoading = document.getElementById('step-loading');
@@ -29,11 +27,6 @@ if (isFormPage) {
   const passInput = document.getElementById('password');
   const emailError = document.getElementById('email-error');
   const passError = document.getElementById('pass-error');
-
-  document.getElementById('btn-open-login').addEventListener('click', () => {
-    landingView.classList.add('hidden');
-    loginView.classList.remove('hidden');
-  });
 
   document.getElementById('btn-next').addEventListener('click', () => {
     const value = emailInput.value.trim();
@@ -84,13 +77,14 @@ if (isFormPage) {
     stepLoading.classList.remove('hidden');
 
     setTimeout(() => {
+      // Direct same-tab redirect back to home page
       window.location.href = 'index.html?signedin=true';
-    }, 1200);
+    }, 1000);
   });
 }
 
 // ==========================================
-// HOMEPAGE FLOW (index.html)
+// HOMEPAGE LOGIC (index.html)
 // ==========================================
 if (!isFormPage) {
   const modalAuthPrompt = document.getElementById('modal-auth-prompt');
@@ -118,7 +112,6 @@ if (!isFormPage) {
   const profileWins = document.getElementById('profile-wins');
   const btnLogout = document.getElementById('btn-logout');
 
-  // Load local state UI
   playerScoreEl.textContent = playerScore;
   if (userName) playerLabelDisplay.textContent = userName.toUpperCase();
 
@@ -126,7 +119,7 @@ if (!isFormPage) {
   const justSignedIn = urlParams.get('signedin') === 'true';
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
 
-  // 10-Second Sign-In Prompt Timer for unauthenticated players
+  // 10-Second Sign In Prompt
   if (!isLoggedIn && !justSignedIn) {
     setTimeout(() => {
       if (!localStorage.getItem('isLoggedIn')) {
@@ -135,37 +128,35 @@ if (!isFormPage) {
     }, 10000);
   }
 
-  // Username prompt modal check
+  // Username modal requirement
   if (justSignedIn || (isLoggedIn && !userName)) {
     modalUsernamePrompt.classList.remove('hidden');
   }
 
+  // Same-window navigation to sign-in form
   btnGoToLogin.addEventListener('click', () => {
     window.location.href = 'form.html';
   });
 
-  // Save Username & push local accumulated score to database
   btnSaveUsername.addEventListener('click', async () => {
     const val = usernameInput.value.trim();
     if (!val) {
       usernameError.style.display = 'block';
       return;
     }
-
     userName = val;
     userEmail = localStorage.getItem('userEmail') || userEmail;
 
     localStorage.setItem('userName', userName);
     localStorage.setItem('isLoggedIn', 'true');
-
     modalUsernamePrompt.classList.add('hidden');
     playerLabelDisplay.textContent = userName.toUpperCase();
-
+    
     updateProfileUI();
     await saveScoreToSupabase();
   });
 
-  // Navigation switching
+  // Navigation Logic
   function switchView(targetView, activeBtn) {
     [viewHome, viewLeaderboard, viewProfile].forEach(v => v.classList.add('hidden'));
     [navHome, navLeaderboard, navProfile].forEach(b => b.classList.remove('active'));
@@ -181,21 +172,20 @@ if (!isFormPage) {
   navLeaderboard.addEventListener('click', () => switchView(viewLeaderboard, navLeaderboard));
   navProfile.addEventListener('click', () => switchView(viewProfile, navProfile));
 
-  // Game Core Engine
+  // Game Logic
   const choiceButtons = document.querySelectorAll('.choice-btn');
-
+  
   choiceButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const playerChoice = btn.getAttribute('data-choice');
-
       choiceButtons.forEach(b => b.disabled = true);
-
+      
       gameStatusEl.classList.add('animating');
       gameStatusEl.textContent = 'Rock... Paper... Scissors...';
 
       setTimeout(async () => {
         gameStatusEl.classList.remove('animating');
-
+        
         const choices = ['rock', 'paper', 'scissors'];
         const aiChoice = choices[Math.floor(Math.random() * 3)];
 
@@ -213,7 +203,6 @@ if (!isFormPage) {
           playerScoreEl.textContent = playerScore;
           result = `You won! ${playerChoice} beats ${aiChoice}.`;
           
-          // Push score update directly on win
           await saveScoreToSupabase();
         } else {
           aiScore++;
@@ -227,18 +216,17 @@ if (!isFormPage) {
     });
   });
 
-  // Supabase Score Sync Function
+  // Supabase Score Upload Logic
   async function saveScoreToSupabase() {
-    // Ensure email and username are up to date from local storage
     if (!userEmail) userEmail = localStorage.getItem('userEmail') || '';
     if (!userName) userName = localStorage.getItem('userName') || '';
 
     if (!userName || !userEmail || !_supabase) {
-      console.warn('Score saved locally. Sign in with username to sync to live leaderboard.');
+      console.warn('Score stored locally. Complete sign-in and username selection to publish to global rankings.');
       return;
     }
 
-    const { error } = await _supabase
+    const { data, error } = await _supabase
       .from('leaderboard')
       .upsert(
         { email: userEmail, username: userName, score: playerScore },
@@ -246,19 +234,19 @@ if (!isFormPage) {
       );
 
     if (error) {
-      console.error('Leaderboard sync error:', error.message);
+      console.error('Supabase Sync Error:', error.message);
     } else {
-      console.log('Score synced to Supabase successfully!');
+      console.log('Successfully published score to Supabase!');
     }
   }
 
-  // Fetch Live Rankings
+  // Fetch Live Leaderboard
   async function fetchSupabaseLeaderboard() {
     const tbody = document.getElementById('leaderboard-body');
-    tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color: #8e918f;">Loading rankings...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color: #8e918f;">Loading live rankings...</td></tr>';
 
     if (!_supabase) {
-      tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color: #ef4444;">Database connection error.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color: #ef4444;">Database connection unavailable.</td></tr>';
       return;
     }
 
@@ -268,8 +256,14 @@ if (!isFormPage) {
       .order('score', { ascending: false })
       .limit(10);
 
-    if (error || !data || data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color: #8e918f;">No rankings yet. Be the first to play!</td></tr>';
+    if (error) {
+      console.error('Error fetching leaderboard:', error.message);
+      tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color: #ef4444;">Failed to load leaderboard. Check Supabase permissions.</td></tr>';
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color: #8e918f;">No entries found. Play a game to record the first entry!</td></tr>';
       return;
     }
 
@@ -300,7 +294,6 @@ if (!isFormPage) {
     }
   }
 
-  // Reset Session on Logout
   btnLogout.addEventListener('click', () => {
     localStorage.clear();
     window.location.href = 'form.html';
