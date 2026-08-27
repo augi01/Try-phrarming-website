@@ -3,95 +3,129 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>App Auth Test</title>
+  <title>Arena RPS | Minimalist Gaming</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- Landing View -->
-  <div id="landing-view" class="landing-card">
-    <button class="btn" id="btn-open-login">Log in</button>
-  </div>
+  <!-- Minimalist Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-brand">ARENA.RPS</div>
+    <div class="nav-links">
+      <button class="nav-btn active" id="nav-home">Home</button>
+      <button class="nav-btn" id="nav-leaderboard">Leaderboard</button>
+      <button class="nav-btn" id="nav-profile">Profile</button>
+    </div>
+  </nav>
 
-  <!-- Login Card Flow (2-Column Grid) -->
-  <div id="login-view" class="split-card hidden">
-    
-    <!-- LEFT COLUMN: Logo, Title, Privacy Notice / Email Chip -->
-    <div class="left-col">
-      <div>
-        <img src="htu.png" alt="Logo" class="logo">
-        <h2 class="title" id="side-title">Sign In</h2>
+  <!-- Main Container -->
+  <main class="main-container">
+
+    <!-- HOME VIEW: Rock Paper Scissors Game -->
+    <section id="view-home" class="view-section">
+      <div class="game-card">
+        <h1 class="game-title">Rock • Paper • Scissors</h1>
+        <p class="game-subtitle">Outsmart the AI to climb the global leaderboard.</p>
+
+        <div class="scoreboard" id="scoreboard-box">
+          <div class="score-box">
+            <span class="score-label" id="player-label-display">PLAYER</span>
+            <span class="score-value" id="player-score">0</span>
+          </div>
+          <div class="score-divider">:</div>
+          <div class="score-box">
+            <span class="score-label">AI</span>
+            <span class="score-value" id="ai-score">0</span>
+          </div>
+        </div>
+
+        <div class="game-status" id="game-status">Choose your move to start</div>
+
+        <div class="rps-choices" id="choices-container">
+          <button class="choice-btn" data-choice="rock">✊ Rock</button>
+          <button class="choice-btn" data-choice="paper">✋ Paper</button>
+          <button class="choice-btn" data-choice="scissors">✌️ Scissors</button>
+        </div>
       </div>
-      
-      <!-- Step 1 Privacy Notice -->
-      <p class="privacy-notice" id="privacy-notice">
-        <span class="line-one">with your Account to continue. This account will be</span><br>
-        available in the browser.
+    </section>
+
+    <!-- LEADERBOARD VIEW -->
+    <section id="view-leaderboard" class="view-section hidden">
+      <div class="leaderboard-card">
+        <h2 class="section-title">Global Leaderboard</h2>
+        <p class="section-subtitle">Real-time live scores from players around the world.</p>
+
+        <div class="table-wrapper">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+              <!-- Live Supabase data loaded dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFILE VIEW -->
+    <section id="view-profile" class="view-section hidden">
+      <div class="profile-card">
+        <div class="profile-avatar">🎮</div>
+        <h2 class="profile-name" id="profile-display-name">Guest Player</h2>
+        <p class="profile-email" id="profile-display-email">Not Signed In</p>
+
+        <div class="profile-stats">
+          <div class="stat-item">
+            <span class="stat-value" id="profile-wins">0</span>
+            <span class="stat-label">Total Score</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value" id="profile-rank">#--</span>
+            <span class="stat-label">Global Rank</span>
+          </div>
+        </div>
+
+        <button class="btn btn-secondary" id="btn-logout" style="margin-top: 24px;">Sign Out</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- STEP 1 POP-UP: Appears 10 Seconds After Entering Site -->
+  <div class="modal-backdrop hidden" id="modal-auth-prompt">
+    <div class="modal-card">
+      <h3 class="modal-title">Sign in to continue</h3>
+      <p class="modal-desc">
+        Create an account or sign in to save your score and compete on the global leaderboard.
       </p>
-
-      <!-- Step 2 Unclickable Email Badge -->
-      <div class="email-chip hidden" id="email-chip">
-        <svg class="chip-icon" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-.85-5.05-2.2.04-1.67 3.33-2.6 5.05-2.6s5.01.93 5.05 2.6C15.8 19.15 14.03 20 12 20z"/>
-        </svg>
-        <span class="chip-email" id="user-display-email"></span>
-        <svg class="chip-arrow" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M7 10l5 5 5-5z"/>
-        </svg>
-      </div>
+      <button class="btn" id="btn-go-to-login">Sign In</button>
     </div>
+  </div>
 
-    <!-- RIGHT COLUMN: Input Forms -->
-    <div class="right-col">
+  <!-- STEP 2 POP-UP: Username Input Prompt (Appears after returning from Form) -->
+  <div class="modal-backdrop hidden" id="modal-username-prompt">
+    <div class="modal-card">
+      <h3 class="modal-title">Welcome Player!</h3>
+      <p class="modal-desc">Choose a display name for the live global leaderboard.</p>
       
-      <!-- Step 1: Email Input -->
-      <div id="step-email">
-        <div class="form-group">
-          <div class="input-container">
-            <input type="email" id="email" placeholder=" ">
-            <label for="email" class="floating-label">Email or phone</label>
-          </div>
-          <div class="error-msg" id="email-error">Please enter a valid email address.</div>
+      <div class="form-group" style="margin-top: 16px;">
+        <div class="input-container">
+          <input type="text" id="username-input" placeholder=" ">
+          <label for="username-input" class="floating-label">Username</label>
         </div>
-        <button class="btn" id="btn-next">Next</button>
+        <div class="error-msg" id="username-error">Username is required.</div>
       </div>
 
-      <!-- Step 2: Password Input (Masked UI, Captured Plain Text) -->
-      <div id="step-password" class="hidden">
-        <div class="form-group">
-          <div class="input-container">
-            <input type="password" id="password" placeholder=" ">
-            <label for="password" class="floating-label">Enter your password</label>
-          </div>
-
-          <div class="show-password-wrapper">
-            <input type="checkbox" id="toggle-password">
-            <label for="toggle-password">Show password</label>
-          </div>
-
-          <div class="error-msg" id="pass-error">Password is required.</div>
-        </div>
-        
-        <button class="btn" id="btn-login">Next</button>
-      </div>
-
-      <!-- Step 3: Loading State -->
-      <div id="step-loading" class="hidden text-center">
-        <div class="spinner"></div>
-        <p style="font-weight: 500;">Signing in...</p>
-        <p class="user-email-display" id="loading-display-email" style="margin-top: 8px;"></p>
-      </div>
-
+      <button class="btn" id="btn-save-username">Save & Play</button>
     </div>
-
   </div>
 
-  <!-- Home View -->
-  <div id="home-view" class="hidden">
-    <h1 class="hero-text">Thank you for trying!</h1>
-  </div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
 </body>
 </html>
