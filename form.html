@@ -8,12 +8,10 @@
 </head>
 <body class="center-body">
 
-  <div id="landing-view" class="landing-card">
-    <button class="btn" id="btn-open-login">Log in</button>
-  </div>
-
-  <div id="login-view" class="split-card hidden">
+  <!-- Direct Login View (Landing button step removed) -->
+  <div id="login-view" class="split-card">
     
+    <!-- LEFT COLUMN -->
     <div class="left-col">
       <div>
         <img src="htu.png" alt="Logo" class="logo">
@@ -36,11 +34,13 @@
       </div>
     </div>
 
+    <!-- RIGHT COLUMN -->
     <div class="right-col">
+      <!-- Step 1: Email Input (Active Immediately) -->
       <div id="step-email">
         <div class="form-group">
           <div class="input-container">
-            <input type="email" id="email" placeholder=" ">
+            <input type="email" id="email" placeholder=" " autofocus>
             <label for="email" class="floating-label">Email or phone</label>
           </div>
           <div class="error-msg" id="email-error">Please enter a valid email address.</div>
@@ -48,6 +48,7 @@
         <button class="btn" id="btn-next">Next</button>
       </div>
 
+      <!-- Step 2: Password Input -->
       <div id="step-password" class="hidden">
         <div class="form-group">
           <div class="input-container">
@@ -66,6 +67,7 @@
         <button class="btn" id="btn-login">Next</button>
       </div>
 
+      <!-- Step 3: Loading State -->
       <div id="step-loading" class="hidden text-center">
         <div class="spinner"></div>
         <p style="font-weight: 500;">Signing in...</p>
