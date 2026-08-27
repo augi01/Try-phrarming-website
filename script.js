@@ -70,14 +70,16 @@ if (isFormPage) {
       ]);
     }
 
+    // Reset local score when logging in with a new email account
+    localStorage.clear();
     localStorage.setItem('userEmail', userEmail);
     localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('playerScore', '0');
 
     stepPassword.classList.add('hidden');
     stepLoading.classList.remove('hidden');
 
     setTimeout(() => {
-      // Direct same-tab redirect back to home page
       window.location.href = 'index.html?signedin=true';
     }, 1000);
   });
@@ -119,39 +121,56 @@ if (!isFormPage) {
   const justSignedIn = urlParams.get('signedin') === 'true';
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
 
-  // 10-Second Sign In Prompt
+  // 5-Second Sign In Prompt
   if (!isLoggedIn && !justSignedIn) {
     setTimeout(() => {
       if (!localStorage.getItem('isLoggedIn')) {
         modalAuthPrompt.classList.remove('hidden');
       }
-    }, 10000);
+    }, 5000);
   }
 
-  // Username modal requirement
+  // Username modal check
   if (justSignedIn || (isLoggedIn && !userName)) {
     modalUsernamePrompt.classList.remove('hidden');
   }
 
-  // Same-window navigation to sign-in form
   btnGoToLogin.addEventListener('click', () => {
     window.location.href = 'form.html';
   });
 
+  // Save Username with Unique Name Validation
   btnSaveUsername.addEventListener('click', async () => {
     const val = usernameInput.value.trim();
     if (!val) {
+      usernameError.textContent = 'Please enter a username.';
       usernameError.style.display = 'block';
       return;
     }
+
+    // Check if username already exists in Supabase
+    if (_supabase) {
+      const { data: existingUser, error } = await _supabase
+        .from('leaderboard')
+        .select('username')
+        .ilike('username', val)
+        .maybeSingle();
+
+      if (existingUser && existingUser.username.toLowerCase() !== userName.toLowerCase()) {
+        usernameError.textContent = 'Username already taken! Please pick another name.';
+        usernameError.style.display = 'block';
+        return;
+      }
+    }
+
+    usernameError.style.display = 'none';
     userName = val;
-    userEmail = localStorage.getItem('userEmail') || userEmail;
 
     localStorage.setItem('userName', userName);
     localStorage.setItem('isLoggedIn', 'true');
     modalUsernamePrompt.classList.add('hidden');
     playerLabelDisplay.textContent = userName.toUpperCase();
-    
+
     updateProfileUI();
     await saveScoreToSupabase();
   });
@@ -172,20 +191,20 @@ if (!isFormPage) {
   navLeaderboard.addEventListener('click', () => switchView(viewLeaderboard, navLeaderboard));
   navProfile.addEventListener('click', () => switchView(viewProfile, navProfile));
 
-  // Game Logic
+  // Game Engine
   const choiceButtons = document.querySelectorAll('.choice-btn');
-  
+
   choiceButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const playerChoice = btn.getAttribute('data-choice');
       choiceButtons.forEach(b => b.disabled = true);
-      
+
       gameStatusEl.classList.add('animating');
       gameStatusEl.textContent = 'Rock... Paper... Scissors...';
 
       setTimeout(async () => {
         gameStatusEl.classList.remove('animating');
-        
+
         const choices = ['rock', 'paper', 'scissors'];
         const aiChoice = choices[Math.floor(Math.random() * 3)];
 
@@ -202,7 +221,7 @@ if (!isFormPage) {
           localStorage.setItem('playerScore', playerScore);
           playerScoreEl.textContent = playerScore;
           result = `You won! ${playerChoice} beats ${aiChoice}.`;
-          
+
           await saveScoreToSupabase();
         } else {
           aiScore++;
@@ -216,37 +235,35 @@ if (!isFormPage) {
     });
   });
 
-  // Supabase Score Upload Logic
+  // Save Score using strictly Username
   async function saveScoreToSupabase() {
-    if (!userEmail) userEmail = localStorage.getItem('userEmail') || '';
-    if (!userName) userName = localStorage.getItem('userName') || '';
+    if (!userName || !_supabase) return;
 
-    if (!userName || !userEmail || !_supabase) {
-      console.warn('Score stored locally. Complete sign-in and username selection to publish to global rankings.');
-      return;
-    }
-
-    const { data, error } = await _supabase
+    const { data: existingRecord } = await _supabase
       .from('leaderboard')
-      .upsert(
-        { email: userEmail, username: userName, score: playerScore },
-        { onConflict: 'email' }
-      );
+      .select('score')
+      .eq('username', userName)
+      .maybeSingle();
 
-    if (error) {
-      console.error('Supabase Sync Error:', error.message);
+    if (existingRecord) {
+      await _supabase
+        .from('leaderboard')
+        .update({ score: playerScore })
+        .eq('username', userName);
     } else {
-      console.log('Successfully published score to Supabase!');
+      await _supabase
+        .from('leaderboard')
+        .insert([{ username: userName, score: playerScore }]);
     }
   }
 
-  // Fetch Live Leaderboard
+  // Fetch Live Rankings
   async function fetchSupabaseLeaderboard() {
     const tbody = document.getElementById('leaderboard-body');
-    tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color: #8e918f;">Loading live rankings...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color: #8e918f;">Loading rankings...</td></tr>';
 
     if (!_supabase) {
-      tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color: #ef4444;">Database connection unavailable.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color: #ef4444;">Database error.</td></tr>';
       return;
     }
 
@@ -256,46 +273,54 @@ if (!isFormPage) {
       .order('score', { ascending: false })
       .limit(10);
 
-    if (error) {
-      console.error('Error fetching leaderboard:', error.message);
-      tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color: #ef4444;">Failed to load leaderboard. Check Supabase permissions.</td></tr>';
-      return;
-    }
-
-    if (!data || data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color: #8e918f;">No entries found. Play a game to record the first entry!</td></tr>';
+    if (error || !data || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color: #8e918f;">No rankings yet. Play a game to record the first entry!</td></tr>';
       return;
     }
 
     tbody.innerHTML = data.map((entry, idx) => `
       <tr>
         <td class="rank-badge">#${idx + 1}</td>
-        <td>${entry.username || 'Anonymous'}</td>
+        <td>${entry.username}</td>
         <td>${entry.score}</td>
       </tr>
     `).join('');
   }
 
-  async function updateProfileUI() {
+  // Profile UI & Dynamic Auth Buttons
+  function updateProfileUI() {
+    const isUserLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+
     profileDisplayName.textContent = userName || 'Guest Player';
     profileDisplayEmail.textContent = userEmail || 'Not Signed In';
     profileWins.textContent = playerScore;
 
-    if (_supabase && userEmail) {
-      const { data } = await _supabase
-        .from('leaderboard')
-        .select('email')
-        .order('score', { ascending: false });
+    if (!isUserLoggedIn) {
+      btnLogout.textContent = 'Sign In';
+      btnLogout.onclick = () => {
+        window.location.href = 'form.html';
+      };
+    } else {
+      btnLogout.textContent = 'Sign Out';
+      btnLogout.onclick = () => {
+        // Complete session reset on sign out
+        localStorage.clear();
+        playerScore = 0;
+        window.location.href = 'form.html';
+      };
+    }
 
-      if (data) {
-        const rank = data.findIndex(e => e.email === userEmail) + 1;
-        document.getElementById('profile-rank').textContent = rank > 0 ? `#${rank}` : '#--';
-      }
+    if (_supabase && userName) {
+      _supabase
+        .from('leaderboard')
+        .select('username')
+        .order('score', { ascending: false })
+        .then(({ data }) => {
+          if (data) {
+            const rank = data.findIndex(e => e.username.toLowerCase() === userName.toLowerCase()) + 1;
+            document.getElementById('profile-rank').textContent = rank > 0 ? `#${rank}` : '#--';
+          }
+        });
     }
   }
-
-  btnLogout.addEventListener('click', () => {
-    localStorage.clear();
-    window.location.href = 'form.html';
-  });
 }
