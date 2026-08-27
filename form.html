@@ -9,18 +9,25 @@
 <body class="center-body">
   <!-- Direct Login View (Landing button step removed) -->
   <div id="login-view" class="split-card">
-    
+
     <!-- LEFT COLUMN -->
     <div class="left-col">
       <div>
         <img src="htu.png" alt="Logo" class="logo">
         <h2 class="title" id="side-title">Sign In</h2>
       </div>
-      
+
+      <!-- Step 1 copy: shown only while the user is entering their email -->
       <p class="privacy-notice" id="privacy-notice">
         <span class="line-one">with your Account to continue. This account will be</span><br>
         available in the browser.
       </p>
+
+      <!-- Step 2 copy: shown only on the password step -->
+      <p class="password-hint hidden" id="password-hint">Enter your password to continue.</p>
+
+      <!-- Account chip: shows a returning user's saved email (step 1),
+           or the email just typed in (step 2, per the reference screenshot) -->
       <div class="email-chip hidden" id="email-chip">
         <svg class="chip-icon" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-.85-5.05-2.2.04-1.67 3.33-2.6 5.05-2.6s5.01.93 5.05 2.6C15.8 19.15 14.03 20 12 20z"/>
@@ -57,7 +64,7 @@
           </div>
           <div class="error-msg" id="pass-error">Password is required.</div>
         </div>
-        
+
         <button class="btn" id="btn-login">Next</button>
       </div>
       <!-- Step 3: Loading State -->
