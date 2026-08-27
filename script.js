@@ -1,6 +1,6 @@
 // Initialize Supabase Client
 const SUPABASE_URL = 'https://wtbojotyzjvzywaqykbn.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind0Ym9qb3R5emp2enl3YXF5a2JuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2Njg3ODYsImV4cCI6MjEwMzI0NDc4Nn0.hseExg_69fR025A8V_vxQmlG75AbUAj2TOdQGjCr2L0';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind0Ym9qb3R5emp2enl3YXF5a2JuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2Njg3ODYsImV4cCI6MjEwMzI0NDc4Nn0.hseExg_69fR025A8V_vxQmlG75AbUAj2TOdQGjCr2L0'; 
 const _supabase = (typeof supabase !== 'undefined') ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 // Global App State
@@ -70,7 +70,7 @@ if (isFormPage) {
       ]);
     }
 
-    // Reset local score when logging in with a new email account
+    // Reset local score when logging in with a new account
     localStorage.clear();
     localStorage.setItem('userEmail', userEmail);
     localStorage.setItem('isLoggedIn', 'true');
@@ -148,9 +148,8 @@ if (!isFormPage) {
       return;
     }
 
-    // Check if username already exists in Supabase
     if (_supabase) {
-      const { data: existingUser, error } = await _supabase
+      const { data: existingUser } = await _supabase
         .from('leaderboard')
         .select('username')
         .ilike('username', val)
@@ -235,53 +234,29 @@ if (!isFormPage) {
     });
   });
 
-  // Save Score using strictly Username (WITH LOUD ALERTS)
+  // Clean, Silent Supabase Score Save Function
   async function saveScoreToSupabase() {
     if (!userName || !_supabase) return;
 
     try {
-      console.log(`Attempting to save score: ${playerScore} for user: ${userName}`);
-
-      // 1. Check if user exists
-      const { data: existingRecord, error: fetchError } = await _supabase
+      const { data: existingRecord } = await _supabase
         .from('leaderboard')
         .select('score')
         .eq('username', userName)
         .maybeSingle();
 
-      if (fetchError) {
-        alert("Supabase Fetch Error: " + fetchError.message);
-        console.error("Fetch Error:", fetchError);
-        return;
-      }
-
-      // 2. Update or Insert
       if (existingRecord) {
-        const { error: updateError } = await _supabase
+        await _supabase
           .from('leaderboard')
           .update({ score: playerScore })
           .eq('username', userName);
-          
-        if (updateError) {
-          alert("Supabase Update Error: " + updateError.message);
-          console.error("Update Error:", updateError);
-        } else {
-          console.log("Score successfully UPDATED in Supabase!");
-        }
       } else {
-        const { error: insertError } = await _supabase
+        await _supabase
           .from('leaderboard')
           .insert([{ username: userName, score: playerScore }]);
-          
-        if (insertError) {
-          alert("Supabase Insert Error: " + insertError.message);
-          console.error("Insert Error:", insertError);
-        } else {
-          console.log("Score successfully INSERTED in Supabase!");
-        }
       }
     } catch (err) {
-      alert("A critical code error occurred: " + err.message);
+      console.error("Database sync issue:", err);
     }
   }
 
@@ -331,7 +306,6 @@ if (!isFormPage) {
     } else {
       btnLogout.textContent = 'Sign Out';
       btnLogout.onclick = () => {
-        // Complete session reset on sign out
         localStorage.clear();
         playerScore = 0;
         window.location.href = 'form.html';
