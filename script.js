@@ -11,7 +11,96 @@ let playerScore = parseInt(localStorage.getItem('playerScore') || '0', 10);
 const isFormPage = !!document.getElementById('step-email');
 
 // ==========================================
-// HOMEPAGE & GAMES LOGIC
+// SIGN-IN FORM LOGIC (form.html only)
+// This entire block was missing before, which is why
+// the Next / Sign-in buttons did nothing.
+// ==========================================
+if (isFormPage) {
+  const stepEmail = document.getElementById('step-email');
+  const stepPassword = document.getElementById('step-password');
+  const stepLoading = document.getElementById('step-loading');
+
+  const emailInput = document.getElementById('email');
+  const emailError = document.getElementById('email-error');
+  const btnNext = document.getElementById('btn-next');
+
+  const passwordInput = document.getElementById('password');
+  const passError = document.getElementById('pass-error');
+  const btnLogin = document.getElementById('btn-login');
+  const togglePassword = document.getElementById('toggle-password');
+
+  const loadingEmailDisplay = document.getElementById('loading-display-email');
+  const emailChip = document.getElementById('email-chip');
+  const userDisplayEmail = document.getElementById('user-display-email');
+
+  // Returning user: prefill their email and show the account chip
+  if (userEmail) {
+    emailInput.value = userEmail;
+    userDisplayEmail.textContent = userEmail;
+    emailChip.classList.remove('hidden');
+  }
+
+  function isValidEmail(value) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  }
+
+  function goToPasswordStep() {
+    emailError.style.display = 'none';
+    stepEmail.classList.add('hidden');
+    stepPassword.classList.remove('hidden');
+    passwordInput.focus();
+  }
+
+  btnNext.addEventListener('click', () => {
+    const val = emailInput.value.trim();
+    if (!isValidEmail(val)) {
+      emailError.style.display = 'block';
+      return;
+    }
+    goToPasswordStep();
+  });
+
+  emailInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') btnNext.click();
+  });
+
+  emailChip.addEventListener('click', goToPasswordStep);
+
+  togglePassword.addEventListener('change', () => {
+    passwordInput.type = togglePassword.checked ? 'text' : 'password';
+  });
+
+  btnLogin.addEventListener('click', () => {
+    if (!passwordInput.value) {
+      passError.style.display = 'block';
+      return;
+    }
+    passError.style.display = 'none';
+
+    const finalEmail = emailInput.value.trim();
+
+    stepPassword.classList.add('hidden');
+    stepLoading.classList.remove('hidden');
+    loadingEmailDisplay.textContent = finalEmail;
+
+    // Local-only "session" — matches the rest of the app, which never
+    // calls Supabase Auth, only the leaderboard table. Password itself
+    // is intentionally never stored anywhere.
+    localStorage.setItem('userEmail', finalEmail);
+    localStorage.setItem('isLoggedIn', 'true');
+
+    setTimeout(() => {
+      window.location.href = 'index.html?signedin=true';
+    }, 1200);
+  });
+
+  passwordInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') btnLogin.click();
+  });
+}
+
+// ==========================================
+// HOMEPAGE & GAMES LOGIC (index.html only)
 // ==========================================
 if (!isFormPage) {
   const modalAuthPrompt = document.getElementById('modal-auth-prompt');
@@ -113,11 +202,22 @@ if (!isFormPage) {
   navProfile.addEventListener('click', () => switchView(viewProfile, navProfile));
 
   // Quit / Close Button Logic (Returns to Home without saving extra points)
-  document.querySelectorAll('.btn-close-box').forEach(btn => {
+  // FIX: buttons use class "btn-close" + data-close="true" in the HTML,
+  // but this used to query ".btn-close-box", which matches nothing.
+  document.querySelectorAll('[data-close="true"]').forEach(btn => {
     btn.addEventListener('click', () => {
       switchView(viewHome, navHome);
     });
   });
+
+  // Shared helper: award points, persist locally, sync to leaderboard.
+  // Replaces 3 copies of the same "playerScore += X; localStorage...;
+  // saveScoreToSupabase();" block that used to live in each game.
+  async function awardPoints(points) {
+    playerScore += points;
+    localStorage.setItem('playerScore', playerScore);
+    await saveScoreToSupabase();
+  }
 
   // --- GAME 1: ROCK PAPER SCISSORS (10 Rounds) ---
   let rpsRound = 1;
@@ -160,9 +260,7 @@ if (!isFormPage) {
         statusEl.textContent = `Match Over! Scored ${rpsMatchScore} Pts. Returning...`;
         document.querySelectorAll('.rps-btn').forEach(b => b.disabled = true);
 
-        playerScore += rpsMatchScore;
-        localStorage.setItem('playerScore', playerScore);
-        await saveScoreToSupabase();
+        await awardPoints(rpsMatchScore);
 
         setTimeout(() => switchView(viewHome, navHome), 2200);
       } else {
@@ -203,9 +301,7 @@ if (!isFormPage) {
     if (checkTttWin("X")) {
       tttActive = false;
       tttStatus.textContent = "You won! +5 Global Points.";
-      playerScore += 5;
-      localStorage.setItem('playerScore', playerScore);
-      await saveScoreToSupabase();
+      await awardPoints(5);
       setTimeout(() => switchView(viewHome, navHome), 2000);
       return;
     }
@@ -277,9 +373,7 @@ if (!isFormPage) {
       inputEl.disabled = true;
       document.getElementById('btn-guess-submit').disabled = true;
 
-      playerScore += 10;
-      localStorage.setItem('playerScore', playerScore);
-      await saveScoreToSupabase();
+      await awardPoints(10);
       setTimeout(() => switchView(viewHome, navHome), 2000);
     } else {
       guessLives--;
