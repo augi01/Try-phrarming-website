@@ -32,17 +32,16 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 24px;
+  padding: 18px 40px;
   background-color: #0a0909;
   border-bottom: 1px solid #222;
   position: sticky;
   top: 0;
   z-index: 100;
-  width: 100%;
 }
 
 .nav-brand {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
   letter-spacing: 1.5px;
   color: #a8c7fa;
@@ -50,16 +49,16 @@ body {
 
 .nav-links {
   display: flex;
-  gap: 8px;
+  gap: 12px;
 }
 
 .nav-btn {
   background: transparent;
   border: none;
   color: #8e918f;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
-  padding: 8px 14px;
+  padding: 8px 16px;
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -83,64 +82,55 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 24px 16px;
+  padding: 32px 16px;
 }
 
 .view-section {
   width: 100%;
-  max-width: 520px;
+  max-width: 600px;
 }
 
 .game-card, .leaderboard-card, .profile-card {
-  position: relative;
   background-color: #0a0909;
   border: 1px solid #222;
   border-radius: 16px;
-  padding: 28px 24px;
+  padding: 36px;
   text-align: center;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  box-sizing: border-box;
-  width: 100%;
+  position: relative;
 }
 
 .game-title, .section-title {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   color: #ffffff;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .game-subtitle, .section-subtitle {
-  font-size: 13px;
+  font-size: 14px;
   color: #8e918f;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
-/* Close Button (X) Inside Game Cards */
+/* Close Button */
+.game-header {
+  position: relative;
+  margin-bottom: 20px;
+  text-align: center;
+}
 .btn-close {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  background: #1a1a1a;
-  color: #ef4444;
-  border: 1px solid #333;
+  top: -10px;
+  right: -10px;
+  background: #ef4444;
+  color: white;
+  border: none;
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  font-size: 14px;
+  width: 30px;
+  height: 30px;
   font-weight: bold;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s, border-color 0.2s;
-  z-index: 10;
-}
-
-.btn-close:hover {
-  background: #ef4444;
-  color: #ffffff;
-  border-color: #ef4444;
 }
 
 /* =========================================
@@ -150,12 +140,12 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
   background: #161616;
   border: 1px solid #2a2a2a;
-  padding: 12px 24px;
+  padding: 16px 32px;
   border-radius: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .score-box {
@@ -164,38 +154,34 @@ body {
 }
 
 .score-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: #8e918f;
   letter-spacing: 1px;
 }
 
 .score-value {
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 800;
   color: #a8c7fa;
 }
 
 .score-divider {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   color: #444;
 }
 
 .game-status {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: #e0e0e0;
-  min-height: 24px;
-  margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.03);
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #1a1a1a;
+  min-height: 28px;
+  margin-bottom: 24px;
 }
 
 /* =========================================
-   5. BUTTONS & INPUTS
+   5. BUTTONS & GAMES
 ========================================= */
 .btn {
   width: 100%;
@@ -203,61 +189,49 @@ body {
   background-color: #3b82f6;
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 15px;
+  border-radius: 6px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s, background-color 0.2s;
+  transition: opacity 0.2s;
 }
 
+.btn-secondary { background-color: #1a1a1a; color: #ef4444; border: 1px solid #333; }
 .btn:hover { opacity: 0.9; }
-
-.btn-secondary { 
-  background-color: #1a1a1a; 
-  color: #ef4444; 
-  border: 1px solid #333; 
-}
 
 .game-menu {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 16px;
+  gap: 15px;
+  margin-top: 20px;
 }
-
 .game-menu-btn {
-  padding: 16px;
-  font-size: 15px;
-  font-weight: 600;
+  padding: 20px;
+  font-size: 1.1rem;
+  font-weight: bold;
   border-radius: 12px;
-  border: 1px solid #2a2a2a;
-  background-color: #161616;
-  color: #a8c7fa;
+  border: none;
+  background: #1a73e8;
+  color: white;
   cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: center;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
-
-.game-menu-btn:hover {
-  background-color: #222;
-  border-color: #a8c7fa;
-  transform: translateY(-2px);
-}
+.game-menu-btn:hover { background: #1557b0; }
 
 .rps-choices {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   justify-content: center;
 }
 
 .choice-btn {
   flex: 1;
-  padding: 14px 10px;
-  background-color: #161616;
-  border: 1px solid #2a2a2a;
+  padding: 16px 12px;
+  background-color: #1a1a1a;
+  border: 1px solid #333;
   border-radius: 10px;
   color: #fff;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.15s, border-color 0.2s, background-color 0.2s;
@@ -269,257 +243,173 @@ body {
   transform: translateY(-2px);
 }
 
-.choice-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.choice-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* Thrill Shake Animation */
 @keyframes shakeRPS {
   0% { transform: translateY(0); }
-  25% { transform: translateY(-6px) scale(1.03); }
-  50% { transform: translateY(6px) scale(0.97); }
-  75% { transform: translateY(-3px); }
+  25% { transform: translateY(-8px) scale(1.05); }
+  50% { transform: translateY(8px) scale(0.95); }
+  75% { transform: translateY(-4px); }
   100% { transform: translateY(0); }
 }
 
-.animating {
-  animation: shakeRPS 0.4s ease-in-out infinite;
-  color: #a8c7fa;
-}
+.animating { animation: shakeRPS 0.4s ease-in-out infinite; color: #a8c7fa; }
 
-/* =========================================
-   6. TIC TAC TOE (DISTORTION FIXED)
-========================================= */
+/* Tic Tac Toe */
 .ttt-board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  width: 100%;
-  max-width: 270px;
-  margin: 10px auto 16px auto;
-  box-sizing: border-box;
+  gap: 5px;
+  max-width: 300px;
+  margin: 0 auto 20px auto;
 }
-
 .ttt-cell {
-  aspect-ratio: 1;
-  width: 100%;
-  background: #161616;
-  border: 1px solid #2a2a2a;
-  border-radius: 10px;
+  background: #f1f5f9;
+  border: 2px solid #cbd5e1;
+  height: 80px;
   font-size: 2rem;
-  font-weight: 800;
-  color: #a8c7fa;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-weight: bold;
   cursor: pointer;
-  line-height: 1;
-  padding: 0;
-  box-sizing: border-box;
-  overflow: hidden;
-  transition: border-color 0.2s, background-color 0.2s;
-}
-
-.ttt-cell:hover:not(:disabled) {
-  border-color: #a8c7fa;
-  background-color: #222;
-}
-
-.ttt-cell:disabled {
-  cursor: default;
-}
-
-/* =========================================
-   7. NUMBER GUESSER UI
-========================================= */
-.guess-input {
-  background: #161616;
-  border: 1px solid #2a2a2a;
-  color: #a8c7fa;
-  padding: 12px;
-  border-radius: 10px;
-  font-size: 1.4rem;
-  font-weight: 700;
-  width: 110px;
-  text-align: center;
-  outline: none;
-  margin-bottom: 14px;
-}
-
-.guess-input:focus {
-  border-color: #a8c7fa;
-}
-
-/* =========================================
-   8. LEADERBOARD & PROFILE
-========================================= */
-.table-wrapper {
-  margin-top: 12px;
-  overflow-x: auto;
-}
-
-.leaderboard-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-.leaderboard-table th {
-  padding: 10px 14px;
-  font-size: 12px;
-  color: #8e918f;
-  border-bottom: 1px solid #222;
-  text-transform: uppercase;
-}
-
-.leaderboard-table td {
-  padding: 14px;
-  font-size: 14px;
-  border-bottom: 1px solid #161616;
-}
-
-.rank-badge {
-  font-weight: 700;
-  color: #a8c7fa;
-}
-
-.profile-avatar { font-size: 44px; margin-bottom: 8px; }
-.profile-name { font-size: 22px; font-weight: 700; color: #fff; }
-.profile-email { font-size: 13px; color: #8e918f; margin-bottom: 20px; }
-
-.profile-stats {
+  border-radius: 8px;
   display: flex;
-  gap: 12px;
-  justify-content: center;
-}
-
-.stat-item {
-  background-color: #161616;
-  border: 1px solid #222;
-  border-radius: 10px;
-  padding: 14px 18px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  color: #121212;
+}
+.ttt-cell:disabled { color: #333; }
+
+/* Number Guesser */
+.guess-input {
+  padding: 10px;
+  font-size: 1.2rem;
+  width: 100px;
+  text-align: center;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 10px;
 }
 
-.stat-value { font-size: 22px; font-weight: 700; color: #a8c7fa; }
-.stat-label { font-size: 11px; color: #8e918f; margin-top: 4px; }
+/* =========================================
+   6. LEADERBOARD & PROFILE
+========================================= */
+.table-wrapper { margin-top: 16px; overflow-x: auto; }
+.leaderboard-table { width: 100%; border-collapse: collapse; text-align: left; }
+.leaderboard-table th { padding: 12px 16px; font-size: 13px; color: #8e918f; border-bottom: 1px solid #222; text-transform: uppercase; }
+.leaderboard-table td { padding: 16px; font-size: 15px; border-bottom: 1px solid #161616; }
+.rank-badge { font-weight: 700; color: #a8c7fa; }
+
+.profile-avatar { font-size: 48px; margin-bottom: 12px; }
+.profile-name { font-size: 24px; font-weight: 700; }
+.profile-email { font-size: 14px; color: #8e918f; margin-bottom: 24px; }
+
+.profile-stats { display: flex; gap: 16px; justify-content: center; }
+.stat-item { background-color: #161616; border: 1px solid #222; border-radius: 10px; padding: 16px 24px; flex: 1; display: flex; flex-direction: column; }
+.stat-value { font-size: 24px; font-weight: 700; color: #a8c7fa; }
+.stat-label { font-size: 12px; color: #8e918f; margin-top: 4px; }
 
 /* =========================================
-   9. MODALS
+   7. MODALS
 ========================================= */
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  top: 0; left: 0; width: 100vw; height: 100vh;
   background-color: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(4px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 16px;
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000; padding: 16px;
 }
 
 .modal-card {
-  background-color: #0a0909;
-  border: 1px solid #333;
-  border-radius: 16px;
-  padding: 28px;
-  max-width: 380px;
-  width: 100%;
-  text-align: center;
+  background-color: #0a0909; border: 1px solid #333; border-radius: 16px;
+  padding: 32px; max-width: 400px; width: 100%; text-align: center;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
 }
-
-.modal-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; color: #fff; }
-.modal-desc { font-size: 13px; color: #8e918f; line-height: 1.5; margin-bottom: 20px; }
+.modal-title { font-size: 22px; font-weight: 700; margin-bottom: 12px; }
+.modal-desc { font-size: 14px; color: #8e918f; line-height: 1.5; margin-bottom: 24px; }
 
 /* =========================================
-   10. FORM & LOGIN FIXES (form.html)
+   8. RESTORED FORM & LOGIN FIXES
 ========================================= */
+.landing-card {
+  background-color: #0a0909; border: 1px solid #0a0909; border-radius: 12px;
+  padding: 32px 24px; width: 100%; max-width: 400px; text-align: center;
+}
+
 .split-card {
-  background-color: #0a0909;
-  border: 1px solid #222;
-  border-radius: 16px;
-  padding: 32px;
-  width: 95%;
-  max-width: 800px; 
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  box-sizing: border-box;
-  margin: 20px auto;
+  background-color: #0a0909; border: 1px solid #0a0909; border-radius: 16px;
+  padding: 40px; width: 95%; max-width: 980px; 
+  display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); box-sizing: border-box; overflow: hidden; margin: 10px auto;
 }
 
 .left-col { display: flex; flex-direction: column; justify-content: flex-start; height: 100%; }
-.logo { height: 44px; width: auto; margin-bottom: 8px; object-fit: contain; }
-.title { font-size: 32px; font-weight: 500; line-height: 1.2; color: #fff; }
-.privacy-notice { font-size: 14px; color: #8e918f; line-height: 1.5; margin-top: 12px; text-align: left; }
+.logo { height: 50px; width: auto; margin-bottom: 8px; margin-left: -10px; object-fit: contain; }
+.title { font-size: 38px; font-weight: 470; line-height: 1.2; }
+.privacy-notice { font-size: 16px; color: #ffffff; line-height: 1.5; margin-top: 16px; text-align: left; }
+.line-one { display: inline-block; white-space: nowrap; }
+
+/* RESTORED: Email Profile Chip */
+.email-chip {
+  display: inline-flex; align-items: center; gap: 10px;
+  border: 1px solid #5f6368; border-radius: 100px; padding: 6px 14px 6px 10px;
+  background-color: transparent; color: #e8eaed; font-size: 15px;
+  font-weight: 500; margin-top: 16px; margin-bottom: 24px; width: fit-content;
+}
+.chip-icon, .chip-arrow { width: 20px; height: 20px; color: #8e918f; }
+.chip-email { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
 
 .right-col { display: flex; flex-direction: column; justify-content: center; }
-.form-group { margin-bottom: 16px; text-align: left; }
+.form-group { margin-bottom: 20px; text-align: left; }
 
-.input-container { position: relative; width: 100%; margin-bottom: 6px; }
+.input-container { position: relative; width: 100%; margin-bottom: 8px; }
 .input-container input {
-  width: 100%;
-  padding: 14px 12px;
-  background-color: transparent;
-  border: 1px solid #444;
-  border-radius: 6px;
-  color: #ffffff;
-  font-size: 15px;
-  outline: none;
-  box-sizing: border-box;
+  box-sizing: border-box; width: 100%; padding: 16px 14px;
+  background-color: transparent; border: 1px solid #8e918f;
+  border-radius: 4px; color: #ffffff; font-size: 16px; outline: none;
   transition: border-color 0.2s ease;
 }
-
-.input-container input:focus { border-color: #a8c7fa; }
+.input-container input:focus { border-color: #a8c7fa; border-width: 2px; padding: 15px 13px; }
 
 .floating-label {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  padding: 0 4px;
-  font-size: 14px;
-  color: #8e918f;
-  pointer-events: none;
-  transition: all 0.2s ease;
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  background-color: transparent; padding: 0 4px; font-size: 16px;
+  color: #8e918f; pointer-events: none; transition: all 0.2s ease;
 }
-
 .input-container input:focus ~ .floating-label,
 .input-container input:not(:placeholder-shown) ~ .floating-label {
-  top: 0;
-  font-size: 11px;
-  color: #a8c7fa;
-  background-color: #0a0909;
+  top: 0; font-size: 12px; color: #a8c7fa; background-color: #0a0909;
 }
 
-/* Checkbox Color Fix */
-input[type="checkbox"] {
-  accent-color: #a8c7fa;
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
+/* RESTORED: Exact Form Checkbox Styles */
+.show-password-wrapper { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+.show-password-wrapper input[type="checkbox"] { 
+  appearance: none; width: 18px; height: 18px; border: 2px solid #8e918f; 
+  border-radius: 2px; background-color: transparent; cursor: pointer; 
 }
+.show-password-wrapper input[type="checkbox"]:checked { background-color: #a8c7fa; border-color: #a8c7fa; }
 
-.show-password-wrapper { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
-.error-msg { color: #ef4444; font-size: 12px; margin-top: 4px; display: none; }
+.error-msg { color: #ef4444; font-size: 12px; margin-top: 6px; display: none; }
+
+/* RESTORED: Loading Spinner Animation for Form Submit */
+.spinner {
+  border: 3px solid #333;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%; width: 32px; height: 32px;
+  animation: spin 0.8s linear infinite; margin: 16px auto;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
 /* =========================================
-   11. RESPONSIVE BREAKPOINTS
+   9. RESPONSIVE BREAKPOINTS
 ========================================= */
-@media (max-width: 720px) {
-  .split-card { grid-template-columns: 1fr; max-width: 450px; padding: 24px; gap: 16px; }
-  .navbar { padding: 12px 16px; }
-  .nav-brand { font-size: 16px; }
-  .nav-btn { font-size: 13px; padding: 6px 12px; }
-  .game-card, .leaderboard-card, .profile-card { padding: 22px 16px; }
+@media (max-width: 900px) {
+  .split-card { grid-template-columns: 1fr; max-width: 500px; padding: 24px; }
+  .navbar { padding: 16px 20px; }
+}
+@media (max-width: 600px) {
+  nav { padding: 10px 5px; background: #ffffff; }
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.3rem; }
+  .view { padding: 15px 10px; }
+  .nav-bar button { font-size: 0.9rem; padding: 8px; }
 }
