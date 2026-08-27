@@ -8,7 +8,7 @@ let userEmail = localStorage.getItem('userEmail') || '';
 let userName = localStorage.getItem('userName') || '';
 let playerScore = parseInt(localStorage.getItem('playerScore') || '0', 10);
 
-const isFormPage = !!document.getElementById('step-email');
+const isFormPage = !!(document.getElementById('step-email') || document.getElementById('auth-form'));
 
 // ==========================================
 // 1. HOMEPAGE & GAMES LOGIC (index.html)
@@ -35,8 +35,9 @@ if (!isFormPage) {
   const allViews = [viewHome, viewLeaderboard, viewProfile, viewRPS, viewTTT, viewGuess];
 
   // Global score display setup
-  if (document.getElementById('global-score-display')) {
-    document.getElementById('global-score-display').textContent = playerScore;
+  const globalScoreDisplay = document.getElementById('global-score-display');
+  if (globalScoreDisplay) {
+    globalScoreDisplay.textContent = playerScore;
   }
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -44,7 +45,7 @@ if (!isFormPage) {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
 
   // 5-Second Sign In Prompt Modal
-  if (!isLoggedIn && !justSignedIn) {
+  if (!isLoggedIn && !justSignedIn && modalAuthPrompt) {
     setTimeout(() => {
       if (!localStorage.getItem('isLoggedIn')) {
         modalAuthPrompt.classList.remove('hidden');
@@ -53,7 +54,7 @@ if (!isFormPage) {
   }
 
   // Username prompt modal check
-  if (justSignedIn || (isLoggedIn && !userName)) {
+  if ((justSignedIn || (isLoggedIn && !userName)) && modalUsernamePrompt) {
     modalUsernamePrompt.classList.remove('hidden');
   }
 
@@ -65,10 +66,12 @@ if (!isFormPage) {
 
   if (btnSaveUsername) {
     btnSaveUsername.addEventListener('click', async () => {
-      const val = usernameInput.value.trim();
+      const val = usernameInput ? usernameInput.value.trim() : '';
       if (!val) {
-        usernameError.textContent = 'Enter a username.';
-        usernameError.style.display = 'block';
+        if (usernameError) {
+          usernameError.textContent = 'Enter a username.';
+          usernameError.style.display = 'block';
+        }
         return;
       }
 
@@ -80,35 +83,42 @@ if (!isFormPage) {
           .maybeSingle();
 
         if (existingUser && existingUser.username.toLowerCase() !== userName.toLowerCase()) {
-          usernameError.textContent = 'Username taken! Pick another.';
-          usernameError.style.display = 'block';
+          if (usernameError) {
+            usernameError.textContent = 'Username taken! Pick another.';
+            usernameError.style.display = 'block';
+          }
           return;
         }
       }
 
-      usernameError.style.display = 'none';
+      if (usernameError) usernameError.style.display = 'none';
       userName = val;
       localStorage.setItem('userName', userName);
       localStorage.setItem('isLoggedIn', 'true');
-      modalUsernamePrompt.classList.add('hidden');
+      if (modalUsernamePrompt) modalUsernamePrompt.classList.add('hidden');
 
       updateProfileUI();
       await saveScoreToSupabase();
     });
   }
 
-  // Navigation Logic
+  // Safe Navigation Switching Logic
   function switchView(targetView, activeNavBtn = null) {
-    allViews.forEach(v => v.classList.add('hidden'));
-    [navHome, navLeaderboard, navProfile].forEach(b => b.classList.remove('active'));
+    allViews.forEach(v => {
+      if (v) v.classList.add('hidden');
+    });
 
-    targetView.classList.remove('hidden');
+    [navHome, navLeaderboard, navProfile].forEach(b => {
+      if (b) b.classList.remove('active');
+    });
+
+    if (targetView) targetView.classList.remove('hidden');
     if (activeNavBtn) activeNavBtn.classList.add('active');
 
     if (targetView === viewLeaderboard) fetchSupabaseLeaderboard();
     if (targetView === viewProfile) updateProfileUI();
-    if (targetView === viewHome) {
-      document.getElementById('global-score-display').textContent = playerScore;
+    if (targetView === viewHome && globalScoreDisplay) {
+      globalScoreDisplay.textContent = playerScore;
     }
   }
 
@@ -116,7 +126,7 @@ if (!isFormPage) {
   if (navLeaderboard) navLeaderboard.addEventListener('click', () => switchView(viewLeaderboard, navLeaderboard));
   if (navProfile) navProfile.addEventListener('click', () => switchView(viewProfile, navProfile));
 
-  // Quit / Close Button Logic (Fixed class selector to .btn-close)
+  // Quit / Close Button Logic
   document.querySelectorAll('.btn-close').forEach(btn => {
     btn.addEventListener('click', () => {
       switchView(viewHome, navHome);
@@ -126,23 +136,34 @@ if (!isFormPage) {
   // --- GAME 1: ROCK PAPER SCISSORS (10 Rounds) ---
   let rpsRound = 1;
   let rpsMatchScore = 0;
+  const btnOpenRPS = document.getElementById('btn-open-rps');
 
-  document.getElementById('btn-open-rps').addEventListener('click', () => {
-    rpsRound = 1;
-    rpsMatchScore = 0;
-    document.getElementById('rps-round').textContent = `${rpsRound}/10`;
-    document.getElementById('rps-match-score').textContent = rpsMatchScore;
-    document.getElementById('rps-status').textContent = 'Choose your move to start';
-    document.querySelectorAll('.rps-btn').forEach(b => b.disabled = false);
-    switchView(viewRPS);
-  });
+  if (btnOpenRPS) {
+    btnOpenRPS.addEventListener('click', () => {
+      rpsRound = 1;
+      rpsMatchScore = 0;
+      const rpsRoundEl = document.getElementById('rps-round');
+      const rpsScoreEl = document.getElementById('rps-match-score');
+      const rpsStatusEl = document.getElementById('rps-status');
 
-  document.querySelectorAll('.rps-btn').forEach(btn => {
+      if (rpsRoundEl) rpsRoundEl.textContent = `${rpsRound}/10`;
+      if (rpsScoreEl) rpsScoreEl.textContent = rpsMatchScore;
+      if (rpsStatusEl) rpsStatusEl.textContent = 'Choose your move to start';
+      document.querySelectorAll('.rps-btn, .choice-btn').forEach(b => b.disabled = false);
+      switchView(viewRPS);
+    });
+  }
+
+  document.querySelectorAll('.rps-btn, .choice-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       const playerChoice = btn.getAttribute('data-choice');
+      if (!playerChoice) return;
+
       const choices = ['rock', 'paper', 'scissors'];
       const aiChoice = choices[Math.floor(Math.random() * 3)];
       const statusEl = document.getElementById('rps-status');
+      const rpsScoreEl = document.getElementById('rps-match-score');
+      const rpsRoundEl = document.getElementById('rps-round');
 
       let result = '';
       if (playerChoice === aiChoice) {
@@ -158,11 +179,11 @@ if (!isFormPage) {
         result = `Lose! ${aiChoice} beats ${playerChoice}.`;
       }
 
-      document.getElementById('rps-match-score').textContent = rpsMatchScore;
+      if (rpsScoreEl) rpsScoreEl.textContent = rpsMatchScore;
 
       if (rpsRound >= 10) {
-        statusEl.textContent = `Match Over! Scored ${rpsMatchScore} Pts. Returning...`;
-        document.querySelectorAll('.rps-btn').forEach(b => b.disabled = true);
+        if (statusEl) statusEl.textContent = `Match Over! Scored ${rpsMatchScore} Pts. Returning...`;
+        document.querySelectorAll('.rps-btn, .choice-btn').forEach(b => b.disabled = true);
 
         playerScore += rpsMatchScore;
         localStorage.setItem('playerScore', playerScore);
@@ -170,9 +191,9 @@ if (!isFormPage) {
 
         setTimeout(() => switchView(viewHome, navHome), 2200);
       } else {
-        statusEl.textContent = result;
+        if (statusEl) statusEl.textContent = result;
         rpsRound++;
-        document.getElementById('rps-round').textContent = `${rpsRound}/10`;
+        if (rpsRoundEl) rpsRoundEl.textContent = `${rpsRound}/10`;
       }
     });
   });
@@ -182,21 +203,25 @@ if (!isFormPage) {
   let tttActive = false;
   const boardEl = document.getElementById('ttt-board');
   const tttStatus = document.getElementById('ttt-status');
+  const btnOpenTTT = document.getElementById('btn-open-ttt');
 
-  document.getElementById('btn-open-ttt').addEventListener('click', () => {
-    tttBoard = ["", "", "", "", "", "", "", "", ""];
-    tttActive = true;
-    tttStatus.textContent = "You are X. It's your turn!";
-    boardEl.innerHTML = '';
-
-    for (let i = 0; i < 9; i++) {
-      const cell = document.createElement('button');
-      cell.classList.add('ttt-cell');
-      cell.addEventListener('click', () => handleTttClick(i, cell));
-      boardEl.appendChild(cell);
-    }
-    switchView(viewTTT);
-  });
+  if (btnOpenTTT) {
+    btnOpenTTT.addEventListener('click', () => {
+      tttBoard = ["", "", "", "", "", "", "", "", ""];
+      tttActive = true;
+      if (tttStatus) tttStatus.textContent = "You are X. It's your turn!";
+      if (boardEl) {
+        boardEl.innerHTML = '';
+        for (let i = 0; i < 9; i++) {
+          const cell = document.createElement('button');
+          cell.classList.add('ttt-cell');
+          cell.addEventListener('click', () => handleTttClick(i, cell));
+          boardEl.appendChild(cell);
+        }
+      }
+      switchView(viewTTT);
+    });
+  }
 
   async function handleTttClick(index, cell) {
     if (!tttActive || tttBoard[index] !== "") return;
@@ -206,7 +231,7 @@ if (!isFormPage) {
 
     if (checkTttWin("X")) {
       tttActive = false;
-      tttStatus.textContent = "You won! +5 Global Points.";
+      if (tttStatus) tttStatus.textContent = "You won! +5 Global Points.";
       playerScore += 5;
       localStorage.setItem('playerScore', playerScore);
       await saveScoreToSupabase();
@@ -216,32 +241,35 @@ if (!isFormPage) {
 
     if (!tttBoard.includes("")) {
       tttActive = false;
-      tttStatus.textContent = "It's a draw!";
+      if (tttStatus) tttStatus.textContent = "It's a draw!";
       setTimeout(() => switchView(viewHome, navHome), 2000);
       return;
     }
 
     tttActive = false;
-    tttStatus.textContent = "AI is thinking...";
+    if (tttStatus) tttStatus.textContent = "AI is thinking...";
 
     setTimeout(async () => {
       let emptyCells = tttBoard.map((v, i) => v === "" ? i : null).filter(v => v !== null);
+      if (emptyCells.length === 0) return;
       let aiPick = emptyCells[Math.floor(Math.random() * emptyCells.length)];
 
       tttBoard[aiPick] = "O";
-      boardEl.children[aiPick].textContent = "O";
+      if (boardEl && boardEl.children[aiPick]) {
+        boardEl.children[aiPick].textContent = "O";
+      }
 
       if (checkTttWin("O")) {
         tttActive = false;
-        tttStatus.textContent = "AI won! Returning...";
+        if (tttStatus) tttStatus.textContent = "AI won! Returning...";
         setTimeout(() => switchView(viewHome, navHome), 2000);
       } else if (!tttBoard.includes("")) {
         tttActive = false;
-        tttStatus.textContent = "It's a draw!";
+        if (tttStatus) tttStatus.textContent = "It's a draw!";
         setTimeout(() => switchView(viewHome, navHome), 2000);
       } else {
         tttActive = true;
-        tttStatus.textContent = "Your turn (X).";
+        if (tttStatus) tttStatus.textContent = "Your turn (X).";
       }
     }, 500);
   }
@@ -254,50 +282,63 @@ if (!isFormPage) {
   // --- GAME 3: NUMBER GUESSER (+10 PTS) ---
   let guessTarget = 0;
   let guessLives = 5;
+  const btnOpenGuess = document.getElementById('btn-open-guess');
+  const btnGuessSubmit = document.getElementById('btn-guess-submit');
 
-  document.getElementById('btn-open-guess').addEventListener('click', () => {
-    guessTarget = Math.floor(Math.random() * 50) + 1;
-    guessLives = 5;
-    document.getElementById('guess-lives').textContent = guessLives;
-    document.getElementById('guess-status').textContent = 'Guess a number between 1 and 50';
-    document.getElementById('guess-input').value = '';
-    document.getElementById('guess-input').disabled = false;
-    document.getElementById('btn-guess-submit').disabled = false;
-    switchView(viewGuess);
-  });
+  if (btnOpenGuess) {
+    btnOpenGuess.addEventListener('click', () => {
+      guessTarget = Math.floor(Math.random() * 50) + 1;
+      guessLives = 5;
+      const guessLivesEl = document.getElementById('guess-lives');
+      const guessStatusEl = document.getElementById('guess-status');
+      const guessInputEl = document.getElementById('guess-input');
 
-  document.getElementById('btn-guess-submit').addEventListener('click', async () => {
-    const inputEl = document.getElementById('guess-input');
-    const val = parseInt(inputEl.value, 10);
-    const statusEl = document.getElementById('guess-status');
-
-    if (isNaN(val) || val < 1 || val > 50) {
-      statusEl.textContent = "Enter a number between 1 and 50.";
-      return;
-    }
-
-    if (val === guessTarget) {
-      statusEl.textContent = "Correct! +10 Global Points!";
-      inputEl.disabled = true;
-      document.getElementById('btn-guess-submit').disabled = true;
-
-      playerScore += 10;
-      localStorage.setItem('playerScore', playerScore);
-      await saveScoreToSupabase();
-      setTimeout(() => switchView(viewHome, navHome), 2000);
-    } else {
-      guessLives--;
-      document.getElementById('guess-lives').textContent = guessLives;
-      if (guessLives <= 0) {
-        statusEl.textContent = `Out of lives! Number was ${guessTarget}.`;
-        inputEl.disabled = true;
-        document.getElementById('btn-guess-submit').disabled = true;
-        setTimeout(() => switchView(viewHome, navHome), 2200);
-      } else {
-        statusEl.textContent = val > guessTarget ? "Too high!" : "Too low!";
+      if (guessLivesEl) guessLivesEl.textContent = guessLives;
+      if (guessStatusEl) guessStatusEl.textContent = 'Guess a number between 1 and 50';
+      if (guessInputEl) {
+        guessInputEl.value = '';
+        guessInputEl.disabled = false;
       }
-    }
-  });
+      if (btnGuessSubmit) btnGuessSubmit.disabled = false;
+      switchView(viewGuess);
+    });
+  }
+
+  if (btnGuessSubmit) {
+    btnGuessSubmit.addEventListener('click', async () => {
+      const inputEl = document.getElementById('guess-input');
+      const val = parseInt(inputEl ? inputEl.value : '', 10);
+      const statusEl = document.getElementById('guess-status');
+      const guessLivesEl = document.getElementById('guess-lives');
+
+      if (isNaN(val) || val < 1 || val > 50) {
+        if (statusEl) statusEl.textContent = "Enter a number between 1 and 50.";
+        return;
+      }
+
+      if (val === guessTarget) {
+        if (statusEl) statusEl.textContent = "Correct! +10 Global Points!";
+        if (inputEl) inputEl.disabled = true;
+        btnGuessSubmit.disabled = true;
+
+        playerScore += 10;
+        localStorage.setItem('playerScore', playerScore);
+        await saveScoreToSupabase();
+        setTimeout(() => switchView(viewHome, navHome), 2000);
+      } else {
+        guessLives--;
+        if (guessLivesEl) guessLivesEl.textContent = guessLives;
+        if (guessLives <= 0) {
+          if (statusEl) statusEl.textContent = `Out of lives! Number was ${guessTarget}.`;
+          if (inputEl) inputEl.disabled = true;
+          btnGuessSubmit.disabled = true;
+          setTimeout(() => switchView(viewHome, navHome), 2200);
+        } else {
+          if (statusEl) statusEl.textContent = val > guessTarget ? "Too high!" : "Too low!";
+        }
+      }
+    });
+  }
 
   // --- SUPABASE RANKING SYNC ---
   async function saveScoreToSupabase() {
@@ -321,6 +362,7 @@ if (!isFormPage) {
 
   async function fetchSupabaseLeaderboard() {
     const tbody = document.getElementById('leaderboard-body');
+    if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Loading rankings...</td></tr>';
 
     if (!_supabase) {
@@ -349,21 +391,27 @@ if (!isFormPage) {
   }
 
   function updateProfileUI() {
-    document.getElementById('profile-display-name').textContent = userName || 'Guest Player';
-    document.getElementById('profile-display-email').textContent = userEmail || 'Not Signed In';
-    document.getElementById('profile-wins').textContent = playerScore;
-
+    const nameEl = document.getElementById('profile-display-name');
+    const emailEl = document.getElementById('profile-display-email');
+    const winsEl = document.getElementById('profile-wins');
     const btnLogout = document.getElementById('btn-logout');
-    if (localStorage.getItem('isLoggedIn') !== 'true') {
-      btnLogout.textContent = 'Sign In';
-      btnLogout.onclick = () => window.location.href = 'form.html';
-    } else {
-      btnLogout.textContent = 'Sign Out';
-      btnLogout.onclick = () => {
-        localStorage.clear();
-        playerScore = 0;
-        window.location.href = 'form.html';
-      };
+
+    if (nameEl) nameEl.textContent = userName || 'Guest Player';
+    if (emailEl) emailEl.textContent = userEmail || 'Not Signed In';
+    if (winsEl) winsEl.textContent = playerScore;
+
+    if (btnLogout) {
+      if (localStorage.getItem('isLoggedIn') !== 'true') {
+        btnLogout.textContent = 'Sign In';
+        btnLogout.onclick = () => window.location.href = 'form.html';
+      } else {
+        btnLogout.textContent = 'Sign Out';
+        btnLogout.onclick = () => {
+          localStorage.clear();
+          playerScore = 0;
+          window.location.href = 'form.html';
+        };
+      }
     }
 
     if (_supabase && userName) {
@@ -374,7 +422,8 @@ if (!isFormPage) {
         .then(({ data }) => {
           if (data) {
             const rank = data.findIndex(e => e.username.toLowerCase() === userName.toLowerCase()) + 1;
-            document.getElementById('profile-rank').textContent = rank > 0 ? `#${rank}` : '#--';
+            const rankEl = document.getElementById('profile-rank');
+            if (rankEl) rankEl.textContent = rank > 0 ? `#${rank}` : '#--';
           }
         });
     }
@@ -431,7 +480,7 @@ if (!isFormPage) {
     emailInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
-        btnNext.click();
+        if (btnNext) btnNext.click();
       }
     });
   }
