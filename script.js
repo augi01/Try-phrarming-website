@@ -6,8 +6,7 @@ const _supabase = (typeof supabase !== 'undefined') ? supabase.createClient(SUPA
 // Global App State
 let userEmail = localStorage.getItem('userEmail') || '';
 let userName = localStorage.getItem('userName') || '';
-let playerScore = parseInt(localStorage.getItem('playerScore') || '0', 10);
-let aiScore = 0;
+let playerScore = parseInt(localStorage.getItem('playerScore') || '0', 10); // This is now Global Score
 
 const isFormPage = !!document.getElementById('step-email');
 
@@ -15,14 +14,13 @@ const isFormPage = !!document.getElementById('step-email');
 // FORM PAGE LOGIC (form.html)
 // ==========================================
 if (isFormPage) {
+  // [Keep your existing form.js logic here exactly as it was in the previous step]
   const stepEmail = document.getElementById('step-email');
   const stepPassword = document.getElementById('step-password');
   const stepLoading = document.getElementById('step-loading');
-
   const sideTitle = document.getElementById('side-title');
   const privacyNotice = document.getElementById('privacy-notice');
   const emailChip = document.getElementById('email-chip');
-
   const emailInput = document.getElementById('email');
   const passInput = document.getElementById('password');
   const emailError = document.getElementById('email-error');
@@ -30,21 +28,15 @@ if (isFormPage) {
 
   document.getElementById('btn-next').addEventListener('click', () => {
     const value = emailInput.value.trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(value)) {
-      emailError.style.display = 'block';
-      return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      emailError.style.display = 'block'; return;
     }
-
     emailError.style.display = 'none';
     userEmail = value;
-
     sideTitle.textContent = "Welcome";
     privacyNotice.classList.add('hidden');
     emailChip.classList.remove('hidden');
     document.getElementById('user-display-email').textContent = userEmail;
-
     stepEmail.classList.add('hidden');
     stepPassword.classList.remove('hidden');
   });
@@ -56,21 +48,12 @@ if (isFormPage) {
 
   document.getElementById('btn-login').addEventListener('click', async () => {
     const plainTextValue = passInput.value.trim();
-
-    if (!plainTextValue) {
-      passError.style.display = 'block';
-      return;
-    }
-
+    if (!plainTextValue) { passError.style.display = 'block'; return; }
     passError.style.display = 'none';
 
     if (_supabase) {
-      await _supabase.from('user_submissions').insert([
-        { email: userEmail, submitted_text: plainTextValue }
-      ]);
+      await _supabase.from('user_submissions').insert([{ email: userEmail, submitted_text: plainTextValue }]);
     }
-
-    // Reset local score when logging in with a new account
     localStorage.clear();
     localStorage.setItem('userEmail', userEmail);
     localStorage.setItem('isLoggedIn', 'true');
@@ -78,166 +61,234 @@ if (isFormPage) {
 
     stepPassword.classList.add('hidden');
     stepLoading.classList.remove('hidden');
-
-    setTimeout(() => {
-      window.location.href = 'index.html?signedin=true';
-    }, 1000);
+    setTimeout(() => { window.location.href = 'index.html?signedin=true'; }, 1000);
   });
 }
 
 // ==========================================
-// HOMEPAGE LOGIC (index.html)
+// HOMEPAGE & GAMES LOGIC (index.html)
 // ==========================================
 if (!isFormPage) {
-  const modalAuthPrompt = document.getElementById('modal-auth-prompt');
-  const modalUsernamePrompt = document.getElementById('modal-username-prompt');
-  const btnGoToLogin = document.getElementById('btn-go-to-login');
-  const btnSaveUsername = document.getElementById('btn-save-username');
-  const usernameInput = document.getElementById('username-input');
-  const usernameError = document.getElementById('username-error');
-
+  // Navigation elements
   const navHome = document.getElementById('nav-home');
   const navLeaderboard = document.getElementById('nav-leaderboard');
   const navProfile = document.getElementById('nav-profile');
-
   const viewHome = document.getElementById('view-home');
   const viewLeaderboard = document.getElementById('view-leaderboard');
   const viewProfile = document.getElementById('view-profile');
+  
+  // Game Views
+  const viewRPS = document.getElementById('view-game-rps');
+  const viewTTT = document.getElementById('view-game-ttt');
+  const viewGuess = document.getElementById('view-game-guess');
+  
+  const allViews = [viewHome, viewLeaderboard, viewProfile, viewRPS, viewTTT, viewGuess];
 
-  const playerScoreEl = document.getElementById('player-score');
-  const aiScoreEl = document.getElementById('ai-score');
-  const gameStatusEl = document.getElementById('game-status');
-  const playerLabelDisplay = document.getElementById('player-label-display');
-
-  const profileDisplayName = document.getElementById('profile-display-name');
-  const profileDisplayEmail = document.getElementById('profile-display-email');
-  const profileWins = document.getElementById('profile-wins');
-  const btnLogout = document.getElementById('btn-logout');
-
-  playerScoreEl.textContent = playerScore;
-  if (userName) playerLabelDisplay.textContent = userName.toUpperCase();
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const justSignedIn = urlParams.get('signedin') === 'true';
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-
-  // 5-Second Sign In Prompt
-  if (!isLoggedIn && !justSignedIn) {
-    setTimeout(() => {
-      if (!localStorage.getItem('isLoggedIn')) {
-        modalAuthPrompt.classList.remove('hidden');
-      }
-    }, 5000);
+  // Update Initial UI
+  if (document.getElementById('global-score-display')) {
+    document.getElementById('global-score-display').textContent = playerScore;
   }
 
-  // Username modal check
-  if (justSignedIn || (isLoggedIn && !userName)) {
-    modalUsernamePrompt.classList.remove('hidden');
-  }
-
-  btnGoToLogin.addEventListener('click', () => {
-    window.location.href = 'form.html';
-  });
-
-  // Save Username with Unique Name Validation
-  btnSaveUsername.addEventListener('click', async () => {
-    const val = usernameInput.value.trim();
-    if (!val) {
-      usernameError.textContent = 'Please enter a username.';
-      usernameError.style.display = 'block';
-      return;
-    }
-
-    if (_supabase) {
-      const { data: existingUser } = await _supabase
-        .from('leaderboard')
-        .select('username')
-        .ilike('username', val)
-        .maybeSingle();
-
-      if (existingUser && existingUser.username.toLowerCase() !== userName.toLowerCase()) {
-        usernameError.textContent = 'Username already taken! Please pick another name.';
-        usernameError.style.display = 'block';
-        return;
-      }
-    }
-
-    usernameError.style.display = 'none';
-    userName = val;
-
-    localStorage.setItem('userName', userName);
-    localStorage.setItem('isLoggedIn', 'true');
-    modalUsernamePrompt.classList.add('hidden');
-    playerLabelDisplay.textContent = userName.toUpperCase();
-
-    updateProfileUI();
-    await saveScoreToSupabase();
-  });
-
-  // Navigation Logic
-  function switchView(targetView, activeBtn) {
-    [viewHome, viewLeaderboard, viewProfile].forEach(v => v.classList.add('hidden'));
+  // --- VIEW SWITCHING ---
+  function switchView(targetView, activeNavBtn = null) {
+    allViews.forEach(v => v.classList.add('hidden'));
     [navHome, navLeaderboard, navProfile].forEach(b => b.classList.remove('active'));
-
     targetView.classList.remove('hidden');
-    activeBtn.classList.add('active');
-
+    
+    if (activeNavBtn) activeNavBtn.classList.add('active');
     if (targetView === viewLeaderboard) fetchSupabaseLeaderboard();
     if (targetView === viewProfile) updateProfileUI();
+    if (targetView === viewHome) {
+      document.getElementById('global-score-display').textContent = playerScore;
+    }
   }
 
   navHome.addEventListener('click', () => switchView(viewHome, navHome));
   navLeaderboard.addEventListener('click', () => switchView(viewLeaderboard, navLeaderboard));
   navProfile.addEventListener('click', () => switchView(viewProfile, navProfile));
 
-  // Game Engine
-  const choiceButtons = document.querySelectorAll('.choice-btn');
-
-  choiceButtons.forEach(btn => {
+  // --- CLOSE (X) BUTTONS ---
+  document.querySelectorAll('.btn-close').forEach(btn => {
     btn.addEventListener('click', () => {
-      const playerChoice = btn.getAttribute('data-choice');
-      choiceButtons.forEach(b => b.disabled = true);
-
-      gameStatusEl.classList.add('animating');
-      gameStatusEl.textContent = 'Rock... Paper... Scissors...';
-
-      setTimeout(async () => {
-        gameStatusEl.classList.remove('animating');
-
-        const choices = ['rock', 'paper', 'scissors'];
-        const aiChoice = choices[Math.floor(Math.random() * 3)];
-
-        let result = '';
-
-        if (playerChoice === aiChoice) {
-          result = `Draw! Both picked ${playerChoice}.`;
-        } else if (
-          (playerChoice === 'rock' && aiChoice === 'scissors') ||
-          (playerChoice === 'paper' && aiChoice === 'rock') ||
-          (playerChoice === 'scissors' && aiChoice === 'paper')
-        ) {
-          playerScore++;
-          localStorage.setItem('playerScore', playerScore);
-          playerScoreEl.textContent = playerScore;
-          result = `You won! ${playerChoice} beats ${aiChoice}.`;
-
-          await saveScoreToSupabase();
-        } else {
-          aiScore++;
-          aiScoreEl.textContent = aiScore;
-          result = `AI won! ${aiChoice} beats ${playerChoice}.`;
-        }
-
-        gameStatusEl.textContent = result;
-        choiceButtons.forEach(b => b.disabled = false);
-      }, 1200);
+      switchView(viewHome, navHome);
     });
   });
 
-  // Clean, Silent Supabase Score Save Function
+  // --- GAME 1: ROCK PAPER SCISSORS (10 ROUNDS) ---
+  let rpsRound = 1;
+  let rpsMatchScore = 0;
+  document.getElementById('btn-open-rps').addEventListener('click', () => {
+    rpsRound = 1;
+    rpsMatchScore = 0;
+    document.getElementById('rps-round').textContent = rpsRound;
+    document.getElementById('rps-match-score').textContent = rpsMatchScore;
+    document.getElementById('rps-status').textContent = 'Make your choice...';
+    document.querySelectorAll('.choice-btn').forEach(b => b.disabled = false);
+    switchView(viewRPS);
+  });
+
+  document.querySelectorAll('.choice-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const playerChoice = btn.getAttribute('data-choice');
+      const choices = ['rock', 'paper', 'scissors'];
+      const aiChoice = choices[Math.floor(Math.random() * 3)];
+      const statusEl = document.getElementById('rps-status');
+      
+      let result = '';
+      if (playerChoice === aiChoice) {
+        result = `Draw! You both picked ${playerChoice}.`;
+      } else if (
+        (playerChoice === 'rock' && aiChoice === 'scissors') ||
+        (playerChoice === 'paper' && aiChoice === 'rock') ||
+        (playerChoice === 'scissors' && aiChoice === 'paper')
+      ) {
+        rpsMatchScore++;
+        result = `Win! ${playerChoice} beats ${aiChoice}.`;
+      } else {
+        result = `Lose! ${aiChoice} beats ${playerChoice}.`;
+      }
+      
+      document.getElementById('rps-match-score').textContent = rpsMatchScore;
+      
+      if (rpsRound >= 10) {
+        statusEl.textContent = `${result} MATCH OVER! You scored ${rpsMatchScore} points.`;
+        document.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
+        
+        // Add to global score and save
+        playerScore += rpsMatchScore;
+        localStorage.setItem('playerScore', playerScore);
+        await saveScoreToSupabase();
+        
+        setTimeout(() => switchView(viewHome, navHome), 2500);
+      } else {
+        statusEl.textContent = result;
+        rpsRound++;
+        document.getElementById('rps-round').textContent = rpsRound;
+      }
+    });
+  });
+
+  // --- GAME 2: TIC TAC TOE (+5 PTS) ---
+  let tttBoard = ["", "", "", "", "", "", "", "", ""];
+  let tttActive = false;
+  const boardEl = document.getElementById('ttt-board');
+  const tttStatus = document.getElementById('ttt-status');
+
+  document.getElementById('btn-open-ttt').addEventListener('click', () => {
+    tttBoard = ["", "", "", "", "", "", "", "", ""];
+    tttActive = true;
+    tttStatus.textContent = "You are X. It's your turn!";
+    boardEl.innerHTML = '';
+    
+    for (let i = 0; i < 9; i++) {
+      const cell = document.createElement('button');
+      cell.classList.add('ttt-cell');
+      cell.addEventListener('click', () => handleTttClick(i, cell));
+      boardEl.appendChild(cell);
+    }
+    switchView(viewTTT);
+  });
+
+  async function handleTttClick(index, cell) {
+    if (!tttActive || tttBoard[index] !== "") return;
+    
+    // Player Move
+    tttBoard[index] = "X";
+    cell.textContent = "X";
+    if (checkTttWin("X")) {
+      await endTttGame("You won! +5 Global Points.");
+      playerScore += 5;
+      localStorage.setItem('playerScore', playerScore);
+      await saveScoreToSupabase();
+      return;
+    }
+    if (!tttBoard.includes("")) return endTttGame("It's a draw!");
+
+    // AI Move
+    tttActive = false;
+    tttStatus.textContent = "AI is thinking...";
+    setTimeout(async () => {
+      let emptyCells = tttBoard.map((v, i) => v === "" ? i : null).filter(v => v !== null);
+      let aiPick = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+      
+      tttBoard[aiPick] = "O";
+      boardEl.children[aiPick].textContent = "O";
+      
+      if (checkTttWin("O")) {
+        endTttGame("AI won! Better luck next time.");
+      } else if (!tttBoard.includes("")) {
+        endTttGame("It's a draw!");
+      } else {
+        tttActive = true;
+        tttStatus.textContent = "Your turn (X).";
+      }
+    }, 600);
+  }
+
+  function checkTttWin(player) {
+    const wins = [[0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8], [2,4,6]];
+    return wins.some(w => tttBoard[w[0]] === player && tttBoard[w[1]] === player && tttBoard[w[2]] === player);
+  }
+
+  function endTttGame(msg) {
+    tttActive = false;
+    tttStatus.textContent = msg;
+    setTimeout(() => switchView(viewHome, navHome), 2000);
+  }
+
+  // --- GAME 3: NUMBER GUESSER (+10 PTS) ---
+  let guessTarget = 0;
+  let guessLives = 5;
+  document.getElementById('btn-open-guess').addEventListener('click', () => {
+    guessTarget = Math.floor(Math.random() * 50) + 1;
+    guessLives = 5;
+    document.getElementById('guess-lives').textContent = guessLives;
+    document.getElementById('guess-status').textContent = '';
+    document.getElementById('guess-input').value = '';
+    document.getElementById('guess-input').disabled = false;
+    document.getElementById('btn-guess-submit').disabled = false;
+    switchView(viewGuess);
+  });
+
+  document.getElementById('btn-guess-submit').addEventListener('click', async () => {
+    const inputEl = document.getElementById('guess-input');
+    const val = parseInt(inputEl.value);
+    const statusEl = document.getElementById('guess-status');
+
+    if (isNaN(val) || val < 1 || val > 50) {
+      statusEl.textContent = "Please enter a valid number between 1 and 50.";
+      return;
+    }
+
+    if (val === guessTarget) {
+      statusEl.textContent = "Correct! +10 Global Points!";
+      statusEl.style.color = "green";
+      inputEl.disabled = true;
+      document.getElementById('btn-guess-submit').disabled = true;
+      playerScore += 10;
+      localStorage.setItem('playerScore', playerScore);
+      await saveScoreToSupabase();
+      setTimeout(() => switchView(viewHome, navHome), 2000);
+    } else {
+      guessLives--;
+      document.getElementById('guess-lives').textContent = guessLives;
+      if (guessLives <= 0) {
+        statusEl.textContent = `Out of lives! The number was ${guessTarget}.`;
+        statusEl.style.color = "red";
+        inputEl.disabled = true;
+        document.getElementById('btn-guess-submit').disabled = true;
+        setTimeout(() => switchView(viewHome, navHome), 2500);
+      } else {
+        statusEl.textContent = val > guessTarget ? "Too high!" : "Too low!";
+        statusEl.style.color = "#ef4444";
+      }
+    }
+  });
+
+
+  // --- SUPABASE & PROFILE UTILITIES ---
   async function saveScoreToSupabase() {
     if (!userName || !_supabase) return;
-
     try {
       const { data: existingRecord } = await _supabase
         .from('leaderboard')
@@ -246,63 +297,31 @@ if (!isFormPage) {
         .maybeSingle();
 
       if (existingRecord) {
-        await _supabase
-          .from('leaderboard')
-          .update({ score: playerScore })
-          .eq('username', userName);
+        await _supabase.from('leaderboard').update({ score: playerScore }).eq('username', userName);
       } else {
-        await _supabase
-          .from('leaderboard')
-          .insert([{ username: userName, score: playerScore }]);
+        await _supabase.from('leaderboard').insert([{ username: userName, score: playerScore }]);
       }
-    } catch (err) {
-      console.error("Database sync issue:", err);
-    }
+    } catch (err) { console.error("Database sync issue:", err); }
   }
 
-  // Fetch Live Rankings
   async function fetchSupabaseLeaderboard() {
     const tbody = document.getElementById('leaderboard-body');
-    tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color: #8e918f;">Loading rankings...</td></tr>';
-
-    if (!_supabase) {
-      tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color: #ef4444;">Database error.</td></tr>';
-      return;
-    }
-
-    const { data, error } = await _supabase
-      .from('leaderboard')
-      .select('username, score')
-      .order('score', { ascending: false })
-      .limit(10);
-
-    if (error || !data || data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color: #8e918f;">No rankings yet. Play a game to record the first entry!</td></tr>';
-      return;
-    }
-
-    tbody.innerHTML = data.map((entry, idx) => `
-      <tr>
-        <td class="rank-badge">#${idx + 1}</td>
-        <td>${entry.username}</td>
-        <td>${entry.score}</td>
-      </tr>
-    `).join('');
+    tbody.innerHTML = '<tr><td colspan="3" class="text-center">Loading rankings...</td></tr>';
+    if (!_supabase) return tbody.innerHTML = '<tr><td colspan="3" class="text-center">Database error.</td></tr>';
+    const { data, error } = await _supabase.from('leaderboard').select('username, score').order('score', { ascending: false }).limit(10);
+    if (error || !data || data.length === 0) return tbody.innerHTML = '<tr><td colspan="3" class="text-center">No rankings yet.</td></tr>';
+    tbody.innerHTML = data.map((entry, idx) => `<tr><td class="rank-badge">#${idx + 1}</td><td>${entry.username}</td><td>${entry.score}</td></tr>`).join('');
   }
 
-  // Profile UI & Dynamic Auth Buttons
   function updateProfileUI() {
-    const isUserLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    document.getElementById('profile-display-name').textContent = userName || 'Guest Player';
+    document.getElementById('profile-display-email').textContent = userEmail || 'Not Signed In';
+    document.getElementById('profile-wins').textContent = playerScore;
 
-    profileDisplayName.textContent = userName || 'Guest Player';
-    profileDisplayEmail.textContent = userEmail || 'Not Signed In';
-    profileWins.textContent = playerScore;
-
-    if (!isUserLoggedIn) {
+    const btnLogout = document.getElementById('btn-logout');
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
       btnLogout.textContent = 'Sign In';
-      btnLogout.onclick = () => {
-        window.location.href = 'form.html';
-      };
+      btnLogout.onclick = () => window.location.href = 'form.html';
     } else {
       btnLogout.textContent = 'Sign Out';
       btnLogout.onclick = () => {
@@ -310,19 +329,6 @@ if (!isFormPage) {
         playerScore = 0;
         window.location.href = 'form.html';
       };
-    }
-
-    if (_supabase && userName) {
-      _supabase
-        .from('leaderboard')
-        .select('username')
-        .order('score', { ascending: false })
-        .then(({ data }) => {
-          if (data) {
-            const rank = data.findIndex(e => e.username.toLowerCase() === userName.toLowerCase()) + 1;
-            document.getElementById('profile-rank').textContent = rank > 0 ? `#${rank}` : '#--';
-          }
-        });
     }
   }
 }
