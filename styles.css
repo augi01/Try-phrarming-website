@@ -404,3 +404,116 @@ body {
   .split-card { grid-template-columns: 1fr; max-width: 500px; padding: 24px; }
   .navbar { padding: 16px 20px; }
 }
+
+/* =========================================
+   MOBILE & UI FIXES
+========================================= */
+/* Fix Form Overlap on Mobile */
+.split-card {
+  box-sizing: border-box;
+  max-width: 95%;
+  margin: 10px auto;
+  overflow: hidden; /* Prevents input bleed */
+}
+.input-container input {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* Fix Checkbox Visibility (Makes it dark gray instead of blending with blue) */
+input[type="checkbox"] {
+  accent-color: #333;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* Fix Navbar on Mobile */
+nav {
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 5px;
+  background: #ffffff;
+}
+
+/* Make overall UI smaller on phones */
+@media (max-width: 600px) {
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.3rem; }
+  .view { padding: 15px 10px; }
+  .nav-bar button { font-size: 0.9rem; padding: 8px; }
+}
+
+/* =========================================
+   NEW GAME MENU & GAME UI STYLES
+========================================= */
+.game-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+.game-card {
+  padding: 20px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border-radius: 12px;
+  border: none;
+  background: #1a73e8;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.game-card:hover { background: #1557b0; }
+
+/* Close Button (X) */
+.game-header {
+  position: relative;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.btn-close {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Tic Tac Toe Board */
+.ttt-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  max-width: 300px;
+  margin: 0 auto 20px auto;
+}
+.ttt-cell {
+  background: #f1f5f9;
+  border: 2px solid #cbd5e1;
+  height: 80px;
+  font-size: 2rem;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 8px;
+}
+.ttt-cell:disabled { color: #333; }
+
+/* Guess Game */
+.guess-input {
+  padding: 10px;
+  font-size: 1.2rem;
+  width: 100px;
+  text-align: center;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
