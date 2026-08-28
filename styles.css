@@ -56,8 +56,9 @@ body {
 .text-center { text-align: center; }
 .hidden { display: none !important; }
 
-/* Shared signature frame: diagonal top-left notch + gradient edge.
-   Applied to every major surface so the cut becomes the site's mark. */
+/* Shared signature frame: a full-width gradient bar along the top edge.
+   overflow:hidden keeps its corners following the card's own radius,
+   so it stays perfectly aligned at every viewport width. */
 .game-card, .leaderboard-card, .profile-card, .split-card, .modal-card {
   position: relative;
   background-color: var(--panel);
@@ -65,7 +66,7 @@ body {
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   box-sizing: border-box;
-  clip-path: polygon(22px 0, 100% 0, 100% 100%, 0 100%, 0 22px);
+  overflow: hidden;
 }
 
 .game-card::before, .leaderboard-card::before, .profile-card::before,
@@ -73,7 +74,7 @@ body {
   content: '';
   position: absolute;
   top: 0;
-  left: 22px;
+  left: 0;
   right: 0;
   height: 3px;
   background: var(--gradient-signature);

